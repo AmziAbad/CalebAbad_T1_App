@@ -4,7 +4,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
@@ -25,7 +24,7 @@ fun Formulario(
     onCantidadChange: (String) -> Unit,
     categoriaSeleccionada: Categoria,
     onCategoriaChange: (Categoria) -> Unit,
-    onAgregarClick: () -> Unit // Callback para el botón principal
+    onAgregarClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -37,18 +36,16 @@ fun Formulario(
         Text(text = "Agregar Libro", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- Campo: Título del Libro ---
         OutlinedTextField(
-            value = titulo, // Lee el estado pasado
-            onValueChange = onTituloChange, // Llama al callback pasado
+            value = titulo,
+            onValueChange = onTituloChange,
             label = { Text("Título del Libro") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- Campos: Precio y Cantidad ---
-        Row( /* ... Controles de precio y cantidad similares ... */ ) {
+        Row() {
             OutlinedTextField(
                 value = precio,
                 onValueChange = onPrecioChange,
@@ -67,7 +64,7 @@ fun Formulario(
         }
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- Selector: Categoría ---
+        // --- Categoría ---
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
@@ -88,7 +85,7 @@ fun Formulario(
                     DropdownMenuItem(
                         text = { Text(categoria.nombre) },
                         onClick = {
-                            onCategoriaChange(categoria) // Llama al callback de categoría
+                            onCategoriaChange(categoria)
                             expanded = false
                         }
                     )
@@ -99,10 +96,10 @@ fun Formulario(
 
         // --- Botón: AGREGAR LIBRO ---
         Button(
-            onClick = onAgregarClick, // Llama al callback de clic
+            onClick = onAgregarClick,
             modifier = Modifier.fillMaxWidth().height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+                containerColor = MaterialTheme.colorScheme.onBackground
             )
         ) {
             Text("Agregar Libro", style = MaterialTheme.typography.titleMedium)

@@ -18,7 +18,7 @@ import edu.pe.cibertec.libromundoapp.viewmodel.CarritoViewModel
 fun TotalDisplay(
     viewModel: CarritoViewModel
 ) {
-    val calculos = viewModel.calculos // Lee el estado de cálculos
+    val calculos = viewModel.calculos
 
     Column(
         modifier = Modifier
@@ -32,27 +32,25 @@ fun TotalDisplay(
         HorizontalDivider()
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Fila del Total Final
+
         TotalRow(label = "Total", value = "S/.%.2f".format(calculos.totalFinal), isTotal = true)
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // --- Botones Limpiar y Calcular ---
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                // Inicia el proceso de confirmación de limpieza (AlertDialog)
                 onClick = viewModel::iniciarConfirmacionLimpiarCarrito,
                 modifier = Modifier.weight(1f).height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) {
                 Text("Limpiar")
             }
             Spacer(modifier = Modifier.width(16.dp))
             Button(
-                // Llama a la función de cálculo
                 onClick = viewModel::calcularTotal,
                 modifier = Modifier.weight(1f).height(50.dp)
             ) {
@@ -62,7 +60,6 @@ fun TotalDisplay(
     }
 }
 
-// Componente de fila reutilizable para Subtotal, Descuento y Total
 @Composable
 fun TotalRow(
     label: String,

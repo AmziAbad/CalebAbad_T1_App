@@ -16,7 +16,7 @@ import edu.pe.cibertec.libromundoapp.viewmodel.CarritoViewModel
 @Composable
 fun LibroItemCard(
     libro: Libro,
-    viewModel: CarritoViewModel // Necesita la ViewModel para la acción de eliminar
+    viewModel: CarritoViewModel
 ) {
     Card(
         modifier = Modifier
@@ -30,7 +30,6 @@ fun LibroItemCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Título y detalles del libro
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = libro.titulo,
@@ -47,17 +46,15 @@ fun LibroItemCard(
                 )
             }
 
-            // Ícono de Eliminar
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Eliminar libro",
                 modifier = Modifier
                     .size(24.dp)
                     .clickable {
-                        // Llama a la función de la ViewModel para iniciar la confirmación
                         viewModel.iniciarEliminacionLibro(libro)
                     },
-                tint = MaterialTheme.colorScheme.error // Color rojo para acción peligrosa
+                tint = MaterialTheme.colorScheme.error
             )
         }
     }

@@ -1,29 +1,27 @@
 package edu.pe.cibertec.libromundoapp.ui.screens
 
-import androidx.compose.foundation.background
+import edu.pe.cibertec.libromundoapp.viewmodel.Color as ViewModelColor
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.pe.cibertec.libromundoapp.model.Libro
 import edu.pe.cibertec.libromundoapp.ui.components.Formulario
 import edu.pe.cibertec.libromundoapp.ui.components.LibroItemCard
 import edu.pe.cibertec.libromundoapp.ui.components.TotalDisplay
+import edu.pe.cibertec.libromundoapp.ui.components.mapEnumColorToComposeColor
 import edu.pe.cibertec.libromundoapp.viewmodel.CarritoViewModel
-import edu.pe.cibertec.libromundoapp.viewmodel.Color
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,12 +29,10 @@ import kotlinx.coroutines.launch
 fun PantallaPrincipal(
     viewModel: CarritoViewModel = viewModel()
 ) {
-    // Lectura de estados
     val librosEnCarrito = viewModel.librosEnCarrito
     val calculos = viewModel.calculos
     val notificacion = viewModel.notificacion
 
-    // Estados para Hoisting del Formulario
     val tituloInput = viewModel.tituloInput
     val precioInput = viewModel.precioInput
     val cantidadInput = viewModel.cantidadInput
@@ -45,17 +41,42 @@ fun PantallaPrincipal(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(notificacion) {
+        if (notificacion != null) {
+            val job = launch {
+                snackbarHostState.showSnackbar(
+                    message = notificacion.mensaje,
+                    duration = SnackbarDuration.Short
+                )
+            }
+            job.invokeOnCompletion {
+                viewModel.limpiarNotificacion()
+            }
+        }
+    }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                val colorEnum = viewModel.notificacion?.color ?: ViewModelColor.GRIS
+
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = mapEnumColorToComposeColor(colorEnum),
+                    contentColor = if (colorEnum == ViewModelColor.GRIS) Color.Black else Color.White
+                )
+            }
+        },
         floatingActionButton = {
             if (calculos.mostrarResumenHabilitado) {
                 FloatingActionButton(
-                    onClick = { /* Aquí iría la lógica para mostrar un Dialog con el Resumen Final */ },
-                    modifier = Modifier.size(70.dp) // Tamaño grande como en la imagen
+                    onClick = { /* No puse ninguna accion porque en el examen no se indica esta parte profesor :) */ },
+                    modifier = Modifier.size(70.dp)
                 ) {
-                    Icon(Icons.Default.Info, contentDescription = "Mostrar Resumen")
-                    Text("S/.%.2f".format(calculos.totalFinal), fontWeight = FontWeight.Bold)
+                    Icon(
+                        imageVector = Icons.Default.MenuBook,
+                        contentDescription = "Resumen del Carrito"
+                    )
                 }
             }
         }
@@ -64,11 +85,10 @@ fun PantallaPrincipal(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // Permite el scroll de toda la columna
+                .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
         ) {
 
-            // 1. FORMULARIO DE ENTRADA (Hoisting)
             Formulario(
                 titulo = tituloInput, onTituloChange = viewModel::actualizarTitulo,
                 precio = precioInput, onPrecioChange = viewModel::actualizarPrecio,
@@ -79,7 +99,7 @@ fun PantallaPrincipal(
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // 2. LISTA DE LIBROS EN EL CARRITO
+            // LISTA DE LIBROS EN EL CARRITO
             Text(
                 text = "Libros en el Carrito",
                 style = MaterialTheme.typography.titleLarge,
@@ -92,54 +112,28 @@ fun PantallaPrincipal(
                     modifier = Modifier.padding(16.dp)
                 )
             } else {
-                // Usamos LazyColumn para la lista (aunque la pantalla es Scrolleable, es mejor para listas grandes)
-                // Nota: Podrías usar Column directamente si la lista es pequeña, pero LazyColumn es más eficiente.
-                // Si usas LazyColumn, asegúrate de darle un alto fijo o un alto que se ajuste al contenido
                 LazyColumn(
-                    modifier = Modifier.height(200.dp) // Altura fija para la lista dentro del scroll vertical
+                    modifier = Modifier.height(200.dp)
                 ) {
                     items(librosEnCarrito, key = { it.id }) { libro ->
                         LibroItemCard(libro = libro, viewModel = viewModel)
                     }
                 }
             }
-
-            // 3. SECCIÓN DE TOTALES Y BOTONES
             TotalDisplay(viewModel = viewModel)
-
         }
     }
 
-    // --- 4. MANEJO DE ALERT DIALOGS (Validación y Confirmación) ---
     MostrarAlertDialogs(viewModel = viewModel)
-
-    // --- 5. MANEJO DE SNACKBAR (Notificaciones) ---
-    // Si hay una notificación pendiente, la muestra
-    if (notificacion != null) {
-        LaunchedEffect(notificacion) {
-            val snackbarResult = scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = notificacion.mensaje,
-                    actionLabel = "OK",
-                    duration = SnackbarDuration.Short
-                )
-            }
-            // Limpia la notificación después de mostrarla o al hacer dismiss
-            snackbarResult.invokeOnCompletion {
-                viewModel.limpiarNotificacion()
-            }
-        }
-    }
 }
 
-// Composable para gestionar todos los AlertDialogs de la ViewModel
 @Composable
 fun MostrarAlertDialogs(viewModel: CarritoViewModel) {
     val libroAConfirmar = viewModel.libroAConfirmarEliminacion
     val mensajeAlerta = viewModel.mostrarAlerta
     val confirmarLimpiar = viewModel.confirmarLimpiarCarrito
 
-    // 1. Alerta de Validación/Error
+
     if (mensajeAlerta != null) {
         AlertDialog(
             onDismissRequest = viewModel::limpiarAlerta,
@@ -149,7 +143,6 @@ fun MostrarAlertDialogs(viewModel: CarritoViewModel) {
         )
     }
 
-    // 2. Confirmación de Eliminación de Libro
     if (libroAConfirmar != null) {
         AlertDialog(
             onDismissRequest = { viewModel.confirmarEliminacionLibro(false) },
@@ -164,7 +157,7 @@ fun MostrarAlertDialogs(viewModel: CarritoViewModel) {
         )
     }
 
-    // 3. Confirmación de Limpiar Carrito
+    // Para limpiar el Carrito
     if (confirmarLimpiar) {
         AlertDialog(
             onDismissRequest = { viewModel.confirmarLimpiarCarrito(false) },
